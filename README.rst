@@ -11,10 +11,10 @@ Echidna
 
 Echidna is a horizontally scalable pubsub service that:
 
-  * allows many thousands of subscribers to connect over WebSocket_
-  * allows publishers to publish via a simple RESTful JSON HTTP API
-  * stores currently relevent notification in ZooKeeper_
-  * is implemented using Cyclone and Twisted_
+* allows many thousands of subscribers to connect over WebSocket_
+* allows publishers to publish via a simple RESTful JSON HTTP API
+* stores currently relevent notification in ZooKeeper_
+* is implemented using Cyclone and Twisted_
 
 .. _WebSocket: http://www.websocket.org/
 .. _ZooKeeper: http://zookeeper.apache.org
@@ -35,6 +35,12 @@ To install in a virtualenv::
 To run tests locally::
 
     (ve)$ trial echidna
+
+To run a demo locally::
+
+    (ve)$ ./demo.sh
+
+and then browse to ``http://localhost:8888/``.
 
 To build the docs locally::
 
