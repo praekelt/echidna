@@ -25,4 +25,4 @@ class SubscriptionHandler(WebSocketHandler):
         pass
 
     def messageReceived(self, msg):
-        self.sendMessage("foo")
+        self.sendMessage(msg)
