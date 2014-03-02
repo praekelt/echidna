@@ -9,7 +9,7 @@ class EchidnaServer(Application):
             (r"/publish", PublicationHandler),
             (r"/subscribe", SubscriptionHandler),
         ]
-        super(EchidnaServer, self).__init__(self, handlers, **settings)
+        Application.__init__(self, handlers, **settings)
 
 
 class RootHandler(RequestHandler):
