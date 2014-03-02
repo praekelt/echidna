@@ -3,18 +3,13 @@ from cyclone.websocket import WebSocketHandler
 
 
 class EchidnaServer(Application):
-    def __init__(self, **settings):
+    def __init__(self, root, **settings):
         handlers = [
-            (r"/", RootHandler),
+            (r"/", root),
             (r"/publish", PublicationHandler),
             (r"/subscribe", SubscriptionHandler),
         ]
         Application.__init__(self, handlers, **settings)
-
-
-class RootHandler(RequestHandler):
-    def get(self):
-        self.render("demo.html")
 
 
 class PublicationHandler(RequestHandler):

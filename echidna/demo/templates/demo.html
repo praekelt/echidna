@@ -4,35 +4,55 @@
     <!-- enable proper rendering and touch zooming -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- jquery -->
+    <script type="text/javascript" src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+
     <!-- boostrap -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
-    <!-- jquery -->
-    <script type="text/javascript" src="//code.jquery.com/jquery-2.1.0.min.js"></script>
-
     <!-- local -->
-    <script type="text/javascript" src="../static/demo.js"></script>
+    <link rel="stylesheet" href="./static/demo.css">
+    <script type="text/javascript" src="./static/demo.js"></script>
 </head>
 <body>
 
+<div class="container-fluid">
+
+<div class="row">
+<div class="col-md-12">
+    <h1>Echidna</h1>
+</div>
+</div>
+
+<div class="row">
+
 <!-- publish cards -->
+<div class="col-md-6">
 <div class="panel panel-primary panel-blue">
     <div class="panel-heading">
         <div class="panel-title">Publish a card</div>
-    <div>
-    <div class="panel-body">
     </div>
+    <div class="panel-body">
+        Form for publishing cards goes here.
+    </div>
+</div>
 </div>
 
 <!-- event stream -->
+<div class="col-md-6">
 <div class="panel panel-primary panel-red">
     <div class="panel-heading">
         <div class="panel-title">Cards received</div>
     </div>
     <div class="panel-body">
+        We show cards we received via websocket here.
     </div>
+</div>
+</div>
+
+</div>
 </div>
 
 </body>
