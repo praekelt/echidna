@@ -7,6 +7,9 @@
     <!-- jquery -->
     <script type="text/javascript" src="//code.jquery.com/jquery-2.1.0.min.js"></script>
 
+    <!-- moment -->
+    <script type="text/javascript" src="//momentjs.com/downloads/moment.min.js"></script>
+
     <!-- boostrap -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
@@ -32,10 +35,21 @@
 <div class="col-md-6">
 <div class="panel panel-primary panel-blue">
     <div class="panel-heading">
-        <div class="panel-title">Publish a card</div>
+        <div class="panel-title">
+            <span class="glyphicon glyphicon-comment"></span>
+            Publish a card
+        </div>
     </div>
     <div class="panel-body">
-        Form for publishing cards goes here.
+        <form id="publish-form">
+            <div class="input-group">
+                <input type="text" class="form-control echidna-publish-text">
+                <span class="input-group-btn">
+                    <button class="btn btn-default echidna-publish-btn"
+                            type="button">Publish!</button>
+                </span>
+            </div>
+        </form>
     </div>
 </div>
 </div>
@@ -44,10 +58,17 @@
 <div class="col-md-6">
 <div class="panel panel-primary panel-red">
     <div class="panel-heading">
-        <div class="panel-title">Cards received</div>
+        <div class="panel-title">
+            <span class="glyphicon glyphicon-phone"></span>
+            Cards received
+        </div>
     </div>
     <div class="panel-body">
-        We show cards we received via websocket here.
+      <ul id="received-list" class="list-group">
+        <li class="list-group-item">
+            No cards yet.
+        </li>
+      </ul>
     </div>
 </div>
 </div>
