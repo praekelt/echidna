@@ -21,6 +21,20 @@
             self.btn.on("click", self.on_publish);
         };
 
+        self.post = function (channel, msg) {
+            debug("Publishing to " + channel + " ...");
+            debug(JSON.stringify(msg));
+
+            var xhdr = $.post(
+                "http://" + self.api_server + "/publish/" + channel + "/",
+                JSON.stringify(msg)
+            ).done(function (data, status) {
+                debug("Published successfully.");
+            }).fail(function () {
+                debug("Publishing failed. :/");
+            });
+        };
+
         self.on_publish = function () {
             var text = self.text.val().trim(),
                 msg = null;
@@ -30,8 +44,7 @@
                     created: $.now(),
                     text: text,
                 }
-                debug("TODO: AJAX post msg")
-                debug("Published: " + JSON.stringify(msg));
+                self.post("channel_one", msg);
             }
 
             self.text.val("");
@@ -64,6 +77,10 @@
 
         self.on_open = function () {
             debug("connected");
+            self.send_msg({
+                "msg_type": "subscribe",
+                "channel": "channel_one",
+            });
         };
 
         self.on_close = function () {
@@ -97,18 +114,37 @@
             self.msgs = [];
         };
 
-        self.on_msg = function (msg) {
+        self.on_msg = function(msg) {
+            var handler = self["on_" + msg.msg_type];
+            if (!handler) {
+                handler = self.on_invalid;
+            }
+            handler(msg);
+        };
+
+        self.on_card = function (msg) {
             if (self.msgs.length == 0) {
                 self.msg_list.empty();
             }
             self.msgs.push(msg);
-            var created = moment(msg.created).format("MMMM Do YYYY, h:mm:ss a");
+            var card = msg.card;
+            var channel = msg.channel;
+            var created = moment(card.created).format("MMMM Do YYYY, h:mm:ss a");
             self.msg_list.prepend(
                 '<li class="list-group-item">' +
                     '<span class="badge">' + created + '</span>' +
-                    msg.text +
+                    '<span class="badge">' + channel + '</span>' +
+                    card.text +
                     '</li>'
             );
+        };
+
+        self.on_error = function(msg) {
+            debug("ERROR msg: " + JSON.stringify(msg));
+        };
+
+        self.on_invalid = function (msg) {
+            debug("INVALID msg: " + JSON.stringify(msg));
         };
 
         self.init();
