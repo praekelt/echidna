@@ -6,18 +6,18 @@
     };
 
 
-    function EchidnaPublisher (publish_form_id, api_server) {
+    function EchidnaPublisher ($publish_form, api_server) {
         var self = this;
 
         self.api_server = api_server;
-        self.publish_form_id = publish_form_id;
+        self.$publish_form = $publish_form;
 
         self.btn = null;
         self.text = null;
 
         self.init = function () {
-            self.btn = $("#publish-form .echidna-publish-btn");
-            self.text = $("#publish-form .echidna-publish-text");
+            self.btn = self.$publish_form.find(".echidna-publish-btn");
+            self.text = self.$publish_form.find(".echidna-publish-text");
             self.btn.on("click", self.on_publish);
         };
 
@@ -44,7 +44,7 @@
                     created: $.now(),
                     text: text,
                 }
-                self.post("channel_one", msg);
+                self.post("radio_ga_ga", msg);
             }
 
             self.text.val("");
@@ -79,7 +79,7 @@
             debug("connected");
             self.send_msg({
                 "msg_type": "subscribe",
-                "channel": "channel_one",
+                "channel": "radio_ga_ga",
             });
         };
 
@@ -101,16 +101,14 @@
     }
 
 
-    function EchidnaReceiver (msg_list_id) {
+    function EchidnaReceiver ($msg_list) {
         var self = this;
 
-        self.msg_list_id = msg_list_id;
+        self.$msg_list = $msg_list;
 
-        self.msg_list = null;
         self.msgs = null;
 
         self.init = function () {
-            self.msg_list = $("#received-list");
             self.msgs = [];
         };
 
@@ -124,13 +122,13 @@
 
         self.on_card = function (msg) {
             if (self.msgs.length == 0) {
-                self.msg_list.empty();
+                self.$msg_list.empty();
             }
             self.msgs.push(msg);
             var card = msg.card;
             var channel = msg.channel;
             var created = moment(card.created).format("MMMM Do YYYY, h:mm:ss a");
-            self.msg_list.prepend(
+            self.$msg_list.prepend(
                 '<li class="list-group-item">' +
                     '<span class="badge">' + created + '</span>' +
                     '<span class="badge">' + channel + '</span>' +
