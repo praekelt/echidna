@@ -11,15 +11,17 @@ class EchidnaServer(Application):
         self.store = InMemoryCardStore()
         handlers = [
             (r"/", root),
-            (r"/publish/(?P<channel>.*)/", PublicationHandler),
-            (r"/subscribe", SubscriptionHandler),
+            (r"/publish/(?P<channel>.*)/", PublicationHandler,
+             dict(store=self.store)),
+            (r"/subscribe", SubscriptionHandler,
+             dict(store=self.store)),
         ]
         Application.__init__(self, handlers, **settings)
 
 
 class PublicationHandler(RequestHandler):
-    def initialize(self):
-        self.store = self.application.store
+    def initialize(self, store):
+        self.store = store
 
     def post(self, channel):
         try:
@@ -31,11 +33,13 @@ class PublicationHandler(RequestHandler):
         except:
             raise HTTPError(400, "Invalid card in request body.")
         self.store.publish(channel, card)
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps({"success": True}))
 
 
 class SubscriptionHandler(WebSocketHandler):
-    def initialize(self):
-        self.store = self.application.store
+    def initialize(self, store):
+        self.store = store
         self.client = None
 
     def _set_client(self, client):
@@ -57,7 +61,9 @@ class SubscriptionHandler(WebSocketHandler):
         if not isinstance(msg, dict):
             return
         msg_type = msg.get("msg_type", "invalid")
-        handler = getattr(self, msg_type, self.handle_invalid)
+        if not isinstance(msg_type, unicode):
+            return
+        handler = getattr(self, "handle_" + msg_type, self.handle_invalid)
         handler(msg)
 
     def on_publish(self, channel_name, card):
