@@ -18,7 +18,7 @@
         self.init = function () {
             self.btn = $("#publish-form .echidna-publish-btn");
             self.text = $("#publish-form .echidna-publish-text");
-            self.btn.on("click", self.pub.on_publish);
+            self.btn.on("click", self.on_publish);
         };
 
         self.on_publish = function () {
