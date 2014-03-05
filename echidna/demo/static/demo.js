@@ -102,18 +102,33 @@
     }
 
 
-    function EchidnaReceiver ($msg_list) {
+    function EchidnaReceiver ($receive_form, $msg_list) {
         var self = this;
 
+        self.$receive_form = $receive_form;
         self.$msg_list = $msg_list;
+        self.$no_cards_li = $msg_list.find(".echidna-no-cards");
 
-        self.msgs = null;
+        self.channels = [];
+        self.msgs = [];
 
         self.init = function () {
-            self.msgs = [];
+            var channel_boxes = self.$receive_form.find(
+                "input[type=checkbox]");
+            channel_boxes.on("click", self.update_channels);
+            self.update_channels();
         };
 
-        self.on_msg = function(msg) {
+        self.update_channels = function () {
+            var channels_checked = self.$receive_form.find(
+                "input:checked");
+            var channels = channels_checked.map(function (idx, elem) {
+                return elem.value;
+            });
+            debug(channels.toArray());
+        };
+
+        self.on_msg = function (msg) {
             var handler = self["on_" + msg.msg_type];
             if (!handler) {
                 handler = self.on_invalid;
