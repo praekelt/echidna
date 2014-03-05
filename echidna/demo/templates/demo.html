@@ -104,9 +104,8 @@ $(function () {
 <script type="text/javascript">
 $(function () {
     var recv = new echidna.EchidnaReceiver(
-        $("#received-form"), $("#received-list"));
-    var ws = new echidna.EchidnaWebSocket(
-        recv, "{{ api_server }}");
+        $("#received-form"), $("#received-list"),
+        "{{ api_server }}");
 });
 </script>
 

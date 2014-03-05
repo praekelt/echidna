@@ -55,92 +55,143 @@
     }
 
 
-    function EchidnaWebSocket (receiver, api_server) {
+    function EchidnaApi (api_server, opts) {
         var self = this;
 
-        self.receiver = receiver;
         self.api_server = api_server;
+        self.callbacks = opts.callbacks || {};
 
-        self.server = null;
+        self.socket = null;
 
         self.init = function () {
-            var server = new WebSocket("ws://" + self.api_server + "/subscribe");
-            self.server = server;
-            server.onopen = self.on_open;
-            server.onclose = self.on_close;
-            server.onmessage = self.on_message;
-            server.onerror = self.on_error;
+            var socket = new WebSocket("ws://" + self.api_server + "/subscribe");
+            self.socket = socket;
+            socket.onopen = self.ws.on_open;
+            socket.onclose = self.ws.on_close;
+            socket.onmessage = self.ws.on_message;
+            socket.onerror = self.ws.on_error;
+        };
+
+        self.callback = function () {
+            var name = Array.prototype.shift.call(arguments);
+            if (self.callbacks[name]) {
+                self.callbacks[name].apply(self, arguments);
+            };
+        };
+
+        self.ws = {};
+
+        self.ws.on_open = function () {
+            debug("connected");
+            self.callback('on_open');
+        };
+
+        self.ws.on_close = function () {
+            debug("disconnected");
+            self.callback('on_close');
+        };
+
+        self.ws.on_message = function (event) {
+            debug("received: " + event.data);
+            var msg = JSON.parse(event.data);
+            var callback_name = "handle_" + msg.msg_type;
+            self.callback(callback_name, msg);
+        };
+
+        self.ws.on_error = function (e) {
+            debug(e);
+            self.callback('on_error', e);
         };
 
         self.send_msg = function (msg) {
-            self.server.send(JSON.stringify(msg));
+            self.socket.send(JSON.stringify(msg));
         };
 
-        self.on_open = function () {
-            debug("connected");
+        self.subscribe = function (channel) {
             self.send_msg({
                 "msg_type": "subscribe",
-                "channel": "radio_ga_ga",
+                "channel": channel,
             });
         };
 
-        self.on_close = function () {
-            debug("connected");
-        };
-
-        self.on_message = function (event) {
-            debug("received: " + event.data);
-            var msg = JSON.parse(event.data);
-            self.receiver.on_msg(msg);
-        };
-
-        self.on_error = function (e) {
-            debug(e);
+        self.unsubscribe = function (channel) {
+            self.send_msg({
+                "msg_type": "unsubscribe",
+                "channel": channel,
+            });
         };
 
         self.init();
     }
 
 
-    function EchidnaReceiver ($receive_form, $msg_list) {
+    function EchidnaReceiver ($receive_form, $msg_list, api_server) {
         var self = this;
 
         self.$receive_form = $receive_form;
+        self.$channel_boxes = $receive_form.find("input[type=checkbox]");
         self.$msg_list = $msg_list;
         self.$no_cards_li = $msg_list.find(".echidna-no-cards");
+        self.api_server = api_server;
 
-        self.channels = [];
-        self.msgs = [];
+        self.api = null;
+        self.channels = {};
 
         self.init = function () {
-            var channel_boxes = self.$receive_form.find(
-                "input[type=checkbox]");
-            channel_boxes.on("click", self.update_channels);
-            self.update_channels();
+            self.api = new EchidnaApi(self.api_server, {
+                "callbacks": {
+                    "on_open": self.on_open,
+                    "handle_card": self.handle_card,
+                    "handle_error": self.handle_error
+                }
+            });
+            self.$channel_boxes.on("click", self.update_channels);
         };
 
         self.update_channels = function () {
-            var channels_checked = self.$receive_form.find(
-                "input:checked");
-            var channels = channels_checked.map(function (idx, elem) {
-                return elem.value;
+            self.$channel_boxes.each(function (idx, elem) {
+                var channel = elem.value;
+                if (elem.checked && !self.channels[channel]) {
+                    self.add_channel(channel);
+                }
+                else if (!elem.checked && self.channels[channel]) {
+                    self.remove_channel(channel);
+                    self.remove_channel_msgs(channel);
+                }
             });
-            debug(channels.toArray());
         };
 
-        self.on_msg = function (msg) {
-            var handler = self["on_" + msg.msg_type];
-            if (!handler) {
-                handler = self.on_invalid;
-            }
-            handler(msg);
+        self.add_channel = function (channel) {
+            debug("Adding channel " + channel + " ...");
+            self.channels[channel] = true;
+            self.api.subscribe(channel);
         };
 
-        self.on_card = function (msg) {
-            if (self.msgs.length == 0) {
-                self.$msg_list.empty();
+        self.remove_channel = function (channel) {
+            debug("Removing channel " + channel + " ...");
+            self.channels[channel] = false;
+            self.api.unsubscribe(channel);
+        };
+
+        self.remove_channel_msgs = function (channel) {
+            self.check_no_cards_li();
+        };
+
+        self.check_no_cards_li = function () {
+            msg_count = self.$msg_list.find("li").length;
+            if (msg_count == 0) {
+                self.$no_cards_li.show();
             }
-            self.msgs.push(msg);
+            else if (msg_count > 1) {
+                self.$no_cards_li.hide();
+            }
+        };
+
+        self.on_open = function () {
+            self.update_channels();
+        };
+
+        self.handle_card = function (msg) {
             var card = msg.card;
             var channel = msg.channel;
             var created = moment(card.created).format("MMMM Do YYYY, h:mm:ss a");
@@ -151,21 +202,18 @@
                     card.text +
                     '</li>'
             );
+            self.check_no_cards_li();
         };
 
-        self.on_error = function(msg) {
+        self.handle_error = function (msg) {
             debug("ERROR msg: " + JSON.stringify(msg));
-        };
-
-        self.on_invalid = function (msg) {
-            debug("INVALID msg: " + JSON.stringify(msg));
         };
 
         self.init();
     }
 
     exports.EchidnaPublisher = EchidnaPublisher;
-    exports.EchidnaWebSocket = EchidnaWebSocket;
+    exports.EchidnaApi = EchidnaApi;
     exports.EchidnaReceiver = EchidnaReceiver;
 
 })(window.echidna = window.echidna || {});
