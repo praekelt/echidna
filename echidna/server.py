@@ -97,5 +97,12 @@ class SubscriptionHandler(WebSocketHandler):
         return d.addCallback(
             lambda cards: self.send_cards(channel_name, cards))
 
+    def handle_unsubscribed(self, msg):
+        channel_name = msg.get("channel")
+        if not isinstance(channel_name, unicode):
+            return
+        d = self.store.unsubscribe(channel_name, self.client)
+        return d
+
     def handle_invalid(self, msg):
         self.send_error("invalid message", original_message=msg)
