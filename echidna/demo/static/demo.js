@@ -12,13 +12,9 @@
         self.api_server = api_server;
         self.$publish_form = $publish_form;
 
-        self.btn = null;
-        self.text = null;
-
         self.init = function () {
-            self.btn = self.$publish_form.find(".echidna-publish-btn");
-            self.text = self.$publish_form.find(".echidna-publish-text");
-            self.btn.on("click", self.on_publish);
+            var btn = self.$publish_form.find(".echidna-publish-btn");
+            btn.on("click", self.on_publish);
         };
 
         self.post = function (channel, msg) {
@@ -36,7 +32,12 @@
         };
 
         self.on_publish = function () {
-            var text = self.text.val().trim(),
+            var text_input = self.$publish_form.find(".echidna-publish-text");
+            var channel_input = self.$publish_form.find(
+                ".echidna-publish-channels :checked");
+
+            var text = text_input.val().trim(),
+                channel = channel_input.val().trim(),
                 msg = null;
 
             if (text) {
@@ -44,10 +45,10 @@
                     created: $.now(),
                     text: text,
                 }
-                self.post("radio_ga_ga", msg);
+                self.post(channel, msg);
             }
 
-            self.text.val("");
+            text_input.val("");
         };
 
         self.init();
