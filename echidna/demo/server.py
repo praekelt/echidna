@@ -33,4 +33,10 @@ class DemoPageHandler(RequestHandler):
     """
 
     def get(self):
-        self.render("demo.html", api_server="localhost:8888")
+        self.render("demo.html",
+                    api_server="localhost:8888",
+                    channels=[
+                        ("radio_ga_ga", "Radio Ga Ga"),
+                        ("channel_x", "Channel X"),
+                        ("major_tom", "Major Tom"),
+                    ])
