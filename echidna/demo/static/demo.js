@@ -156,7 +156,6 @@
                 }
                 else if (!elem.checked && self.channels[channel]) {
                     self.remove_channel(channel);
-                    self.remove_channel_msgs(channel);
                 }
             });
         };
@@ -171,14 +170,21 @@
             debug("Removing channel " + channel + " ...");
             self.channels[channel] = false;
             self.api.unsubscribe(channel);
+            self.remove_channel_msgs(channel);
         };
 
         self.remove_channel_msgs = function (channel) {
+            self.$msg_list.find("li[channel='" + channel + "']").remove();
             self.check_no_cards_li();
         };
 
+        self.check_msg_overflow = function () {
+            self.$msg_list.find("li:visible:gt(20)").remove();
+        };
+
         self.check_no_cards_li = function () {
-            msg_count = self.$msg_list.find("li").length;
+            msg_count = self.$msg_list.find("li:visible").length;
+            debug(msg_count);
             if (msg_count == 0) {
                 self.$no_cards_li.show();
             }
@@ -196,12 +202,13 @@
             var channel = msg.channel;
             var created = moment(card.created).format("MMMM Do YYYY, h:mm:ss a");
             self.$msg_list.prepend(
-                '<li class="list-group-item">' +
+                '<li class="list-group-item" channel="' + channel + '">' +
                     '<span class="badge">' + created + '</span>' +
-                    '<span class="badge">' + channel + '</span>' +
+                    '<span class="badge channel">' + channel + '</span>' +
                     card.text +
                     '</li>'
             );
+            self.check_msg_overflow();
             self.check_no_cards_li();
         };
 
