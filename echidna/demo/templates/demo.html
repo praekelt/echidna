@@ -37,17 +37,28 @@
     <div class="panel-heading">
         <div class="panel-title">
             <span class="glyphicon glyphicon-comment"></span>
-            Publish a card
+            Publish a card (e.g from Django CMS)
         </div>
     </div>
     <div class="panel-body">
         <form id="publish-form">
+            <div class="form-group">
+                <p>Publish to:</p>
+                {% for i, (channel, label) in enumerate(channels) %}
+                <label class="radio-inline">
+                    <input name="channel" type="radio" value="{{ channel }}"
+                           {{ "checked" if i == 0 else ""}}> {{ label }}
+                </label>
+                {% end %}
+            </div>
+            <div class="form-group">
             <div class="input-group">
                 <input type="text" class="form-control echidna-publish-text">
                 <span class="input-group-btn">
                     <button class="btn btn-default echidna-publish-btn"
                             type="button">Publish!</button>
                 </span>
+            </div>
             </div>
         </form>
     </div>
@@ -67,15 +78,26 @@ $(function () {
     <div class="panel-heading">
         <div class="panel-title">
             <span class="glyphicon glyphicon-phone"></span>
-            Cards received
+            Cards received (e.g. on PhoneGap app)
         </div>
     </div>
     <div class="panel-body">
-      <ul id="received-list" class="list-group">
-        <li class="list-group-item">
-            No cards yet.
-        </li>
-      </ul>
+        <form id="publish-form">
+            <div class="form-group">
+                <p>Subscribe to:</p>
+                {% for i, (channel, label) in enumerate(channels) %}
+                <label class="checkbox-inline">
+                    <input type="checkbox" value="{{ channel }}"
+                           {{ "checked" if i == 0 else ""}}> {{ label }}
+                </label>
+                {% end %}
+            </div>
+        </form>
+        <ul id="received-list" class="list-group">
+            <li class="list-group-item">
+                No cards yet.
+            </li>
+        </ul>
     </div>
 </div>
 </div>
