@@ -34,4 +34,4 @@ class DemoPageHandler(RequestHandler):
     """
 
     def get(self):
-        self.render("demo.html")
+        self.render("demo.html", api_server="localhost:8888")
