@@ -40,7 +40,19 @@ class ICardStore(Interface):
         :param client: client subscribing to the channel.
 
         :return: A defered that fires with a list of current cards
-                 for the channel.
+                 for the channel once the client is subscribed.
+        """
+
+    def unsubscribe(channel_name, client):
+        """
+        Unsubscribe from a channel.
+
+        :type channel: str
+        :param channel: channel to unsubscribe from.
+        :type client: :class:`IClient`
+        :param client: client unsubscribing from the channel.
+
+        :return: A defered that fires once the client is unsubcribed.
         """
 
     def publish(channel_name, card):

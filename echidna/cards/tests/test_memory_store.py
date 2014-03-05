@@ -162,6 +162,21 @@ class TestInMemoryCardStore(TestCase):
         self.assertEqual(cards, [card1])
 
     @inlineCallbacks
+    def test_unsubscribe(self):
+        store, client = yield self.mk_store_and_client()
+        yield store.subscribe("flash", client)
+        self.assert_subscribed_clients(store, {"flash": [client]})
+        yield store.unsubscribe("flash", client)
+        self.assert_subscribed_clients(store, {})
+
+    @inlineCallbacks
+    def test_unsubscribe_when_no_subscribed(self):
+        store, client = yield self.mk_store_and_client()
+        self.assert_subscribed_clients(store, {})
+        yield store.unsubscribe("flash", client)
+        self.assert_subscribed_clients(store, {})
+
+    @inlineCallbacks
     def test_publish(self):
         store = InMemoryCardStore()
         card1, card2 = object(), object()

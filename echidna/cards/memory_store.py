@@ -85,6 +85,11 @@ class InMemoryCardStore(object):
         channel.subscribe(client)
         return succeed(channel.cards())
 
+    def unsubscribe(self, channel_name, client):
+        channel = self._ensure_channel(channel_name)
+        channel.remove(client)
+        return succeed(None)
+
     def publish(self, channel_name, card):
         channel = self._ensure_channel(channel_name)
         channel.publish(card)
