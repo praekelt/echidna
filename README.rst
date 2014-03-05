@@ -40,7 +40,8 @@ To run a demo locally::
 
     (ve)$ ./demo.sh
 
-and then browse to ``http://localhost:8888/``.
+and then open ``http://localhost:8888/`` your browser (open the URL in
+multiple tabs for the full effect).
 
 To build the docs locally::
 
