@@ -21,7 +21,6 @@ class DemoServer(EchidnaServer):
             "static_path": (
                 os.path.join(os.path.dirname(__file__), "static")),
             "static_url_prefix": "/static/",
-            "xsrf_cookies": True,
             "autoescape": None,
         }
         defaults.update(settings)
