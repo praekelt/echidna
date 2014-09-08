@@ -15,6 +15,8 @@ setup(
         'Twisted',
         'cyclone',
         'txzookeeper',
+        'redis',
+        'zope.dottedname',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

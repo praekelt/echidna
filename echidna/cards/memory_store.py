@@ -3,11 +3,15 @@ Tools for storing and retrieiving cards in memory.
 """
 
 import uuid
+import json
 
 from zope.interface import implements
+from zope.dottedname.resolve import resolve
 from twisted.internet.defer import succeed
+import redis
 
-from echidna.cards.interfaces import IClient, ICardStore
+from echidna.cards.interfaces import IInMemoryChannel, IRedisChannel, \
+    IClient, ICardStore
 
 
 class InMemoryClient(object):
@@ -30,6 +34,8 @@ class InMemoryChannel(object):
     A channel in an :class:`InMemoryCardStore`.
     """
 
+    implements(IInMemoryChannel)
+
     def __init__(self, name):
         self.name = name
         self._clients = {}
@@ -51,6 +57,42 @@ class InMemoryChannel(object):
             client.publish(self.name, card)
 
 
+class RedisChannel(object):
+    """
+    A channel in an :class:`InMemoryCardStore`.
+    """
+
+    implements(IRedisChannel)
+
+    def __init__(self, name):
+        self.name = name
+        self._clients = {}
+        self._redis = redis.Redis("localhost")
+        self._cards = []
+        self._key = "echidna%scards" % self.name
+        values = self._redis.lrange(self._key, 0, -1)
+        try:
+            self._cards = [json.loads(v) for v in values]
+        except ValueError:
+            pass
+
+    def subscribe(self, client):
+        self._clients[client.client_id] = client
+
+    def remove(self, client):
+        if client.client_id in self._clients:
+            del self._clients[client.client_id]
+
+    def cards(self):
+        return self._cards
+
+    def publish(self, card):
+        self._cards.append(card)
+        self._redis.rpush(self._key, json.dumps(card))
+        for client in self._clients.itervalues():
+            client.publish(self.name, card)
+
+
 class InMemoryCardStore(object):
     """
     Stores cards in memory.
@@ -68,7 +110,9 @@ class InMemoryCardStore(object):
 
     def _ensure_channel(self, name):
         if name not in self._channels:
-            self._channels[name] = InMemoryChannel(name)
+            # todo: put in config
+            self._channels[name] = resolve(
+                "echidna.cards.memory_store.RedisChannel")(name)
         return self._channels[name]
 
     def create_client(self, callback):

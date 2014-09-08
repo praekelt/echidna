@@ -5,6 +5,18 @@ Interfaces to card stores.
 from zope.interface import Interface
 
 
+class IChannel(Interface):
+    pass
+
+
+class IInMemoryChannel(IChannel):
+    pass
+
+
+class IRedisChannel(IChannel):
+    pass
+
+
 class ICardStore(Interface):
     """
     An interface for publishing and subscribing to channels of cards.
