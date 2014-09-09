@@ -1,13 +1,19 @@
+import datetime
+
 from twisted.internet.defer import inlineCallbacks
 from twisted.trial.unittest import TestCase
 
-from echidna.cards.channels import InMemoryChannel
+from echidna.cards.channels import InMemoryChannel, RedisChannel
 from echidna.cards.tests.utils import mk_client, Recorder
 
 
 class TestInMemoryChannel(TestCase):
+
+    def setUp(self):
+        self._channels = {"radio_ga_ga": InMemoryChannel("radio_ga_ga")}
+
     def test_create(self):
-        channel = InMemoryChannel("radio_ga_ga")
+        channel = self._channels["radio_ga_ga"]
         self.assertEqual(channel.name, "radio_ga_ga")
 
     def assert_clients(self, channel, clients):
@@ -19,14 +25,14 @@ class TestInMemoryChannel(TestCase):
         self.assertEqual(channel.cards(), cards)
 
     def test_subscribe(self):
-        channel = InMemoryChannel("radio_ga_ga")
+        channel = self._channels["radio_ga_ga"]
         client = mk_client()
         self.assert_clients(channel, [])
         channel.subscribe(client)
         self.assert_clients(channel, [client])
 
     def test_remove(self):
-        channel = InMemoryChannel("radio_ga_ga")
+        channel = self._channels["radio_ga_ga"]
         client = mk_client()
         channel.subscribe(client)
         self.assert_clients(channel, [client])
@@ -34,8 +40,11 @@ class TestInMemoryChannel(TestCase):
         self.assert_clients(channel, [])
 
     def test_cards(self):
-        channel = InMemoryChannel("radio_ga_ga")
-        card1, card2 = object(), object()
+        channel = self._channels["radio_ga_ga"]
+        card1 = card2 = {
+            "text": "bla",
+            "created": int(datetime.datetime.now().strftime("%s"))
+        }
         self.assert_cards(channel, [])
         channel.publish(card1)
         self.assert_cards(channel, [card1])
@@ -43,8 +52,11 @@ class TestInMemoryChannel(TestCase):
         self.assert_cards(channel, [card1, card2])
 
     def test_publish(self):
-        channel = InMemoryChannel("radio_ga_ga")
-        card1, card2 = object(), object()
+        channel = self._channels["radio_ga_ga"]
+        card1 = card2 = {
+            "text": "bla",
+            "created": int(datetime.datetime.now().strftime("%s"))
+        }
         recorder = Recorder()
         client = mk_client(recorder)
         channel.subscribe(client)
@@ -59,3 +71,9 @@ class TestInMemoryChannel(TestCase):
             ("radio_ga_ga", card1),
             ("radio_ga_ga", card2),
         ])
+
+
+class TestRedisChannel(TestInMemoryChannel):
+
+    def setUp(self):
+        self._channels = {"radio_ga_ga": RedisChannel("radio_ga_ga")}
