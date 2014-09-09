@@ -24,6 +24,7 @@ class InMemoryClient(object):
     def __init__(self, callback):
         self.client_id = uuid.uuid4().get_hex()
         self.callback = callback
+        self.last_seen = None
 
     def publish(self, channel_name, card):
         self.callback(channel_name, card)
@@ -76,14 +77,22 @@ class RedisChannel(object):
         except ValueError:
             pass
 
-    def subscribe(self, client):
+    def subscribe(self, client, last_seen=None):
+        client.last_seen = last_seen
         self._clients[client.client_id] = client
 
     def remove(self, client):
         if client.client_id in self._clients:
             del self._clients[client.client_id]
 
-    def cards(self):
+    def cards(self, client):
+        if client.last_seen is not None:
+            last_seen_cards = []
+            for card in self._cards:
+                if card['created'] > int(client.last_seen):
+                    last_seen_cards.append(card)
+            return last_seen_cards
+
         return self._cards
 
     def publish(self, card):
@@ -124,10 +133,10 @@ class InMemoryCardStore(object):
             channel.remove(client)
         return succeed(None)
 
-    def subscribe(self, channel_name, client):
+    def subscribe(self, channel_name, client, last_seen):
         channel = self._ensure_channel(channel_name)
-        channel.subscribe(client)
-        return succeed(channel.cards())
+        channel.subscribe(client, last_seen)
+        return succeed(channel.cards(client))
 
     def unsubscribe(self, channel_name, client):
         channel = self._ensure_channel(channel_name)

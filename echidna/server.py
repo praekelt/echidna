@@ -91,9 +91,11 @@ class SubscriptionHandler(WebSocketHandler):
 
     def handle_subscribe(self, msg):
         channel_name = msg.get("channel")
+        last_seen = msg.get("last_seen", None)
         if not isinstance(channel_name, unicode):
             return
-        d = self.store.subscribe(channel_name, self.client)
+
+        d = self.store.subscribe(channel_name, self.client, last_seen)
         return d.addCallback(
             lambda cards: self.send_cards(channel_name, cards))
 
