@@ -42,14 +42,15 @@ class InMemoryChannel(object):
         self._clients = {}
         self._cards = []
 
-    def subscribe(self, client):
+    def subscribe(self, client, last_seen=None):
+        client.last_seen = last_seen
         self._clients[client.client_id] = client
 
     def remove(self, client):
         if client.client_id in self._clients:
             del self._clients[client.client_id]
 
-    def cards(self):
+    def cards(self, client=None):
         return self._cards
 
     def publish(self, card):
@@ -85,8 +86,8 @@ class RedisChannel(object):
         if client.client_id in self._clients:
             del self._clients[client.client_id]
 
-    def cards(self, client):
-        if client.last_seen is not None:
+    def cards(self, client=None):
+        if (client is not None) and (client.last_seen is not None):
             last_seen_cards = []
             for card in self._cards:
                 if card['created'] > int(client.last_seen):
@@ -120,8 +121,11 @@ class InMemoryCardStore(object):
     def _ensure_channel(self, name):
         if name not in self._channels:
             # todo: put in config
+            #self._channels[name] = resolve(
+            #    "echidna.cards.memory_store.RedisChannel")(name)
             self._channels[name] = resolve(
-                "echidna.cards.memory_store.RedisChannel")(name)
+                "echidna.cards.memory_store.InMemoryChannel")(name)
+
         return self._channels[name]
 
     def create_client(self, callback):
@@ -133,7 +137,7 @@ class InMemoryCardStore(object):
             channel.remove(client)
         return succeed(None)
 
-    def subscribe(self, channel_name, client, last_seen):
+    def subscribe(self, channel_name, client, last_seen=None):
         channel = self._ensure_channel(channel_name)
         channel.subscribe(client, last_seen)
         return succeed(channel.cards(client))
