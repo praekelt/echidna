@@ -7,8 +7,10 @@ from echidna.cards.base import CardStore
 
 
 class EchidnaServer(Application):
-    def __init__(self, root, **settings):
+    def __init__(self, root, yaml_file, **settings):
         # todo: get channel_class from settings and pass to constructor
+        #import pdb;pdb.set_trace()
+        # if bla in yaml pass arg to cardstore
         self.store = CardStore()
         handlers = [
             (r"/", root),
