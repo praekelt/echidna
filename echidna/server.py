@@ -3,12 +3,13 @@ import json
 from cyclone.web import Application, RequestHandler, HTTPError
 from cyclone.websocket import WebSocketHandler
 
-from echidna.cards.memory_store import InMemoryCardStore
+from echidna.cards.base import CardStore
 
 
 class EchidnaServer(Application):
     def __init__(self, root, **settings):
-        self.store = InMemoryCardStore()
+        # todo: get channel_class from settings and pass to constructor
+        self.store = CardStore()
         handlers = [
             (r"/", root),
             (r"/publish/(?P<channel>.*)/", PublicationHandler,
