@@ -6,6 +6,7 @@ before_install:
   - sudo apt-get install zookeeper redis-server
 services:
   - zookeeper
+  - redis-server
 install:
   - "pip install coveralls --use-wheel"
   - "python setup.py install"
