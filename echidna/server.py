@@ -7,7 +7,7 @@ from echidna.cards.base import CardStore
 
 
 class EchidnaServer(Application):
-    def __init__(self, root, yaml_file, **settings):
+    def __init__(self, root, yaml_file=None, **settings):
         # todo: get channel_class from settings and pass to constructor
         #import pdb;pdb.set_trace()
         # if bla in yaml pass arg to cardstore
@@ -57,6 +57,7 @@ class SubscriptionHandler(WebSocketHandler):
             return self.store.remove_client(self.client)
 
     def messageReceived(self, msg):
+        print "Received message: %s" % str(msg)
         try:
             msg = json.loads(msg)
         except:
@@ -78,6 +79,7 @@ class SubscriptionHandler(WebSocketHandler):
             "channel": channel_name,
             "card": card,
         }
+        print "send card"
         self.sendMessage(json.dumps(msg))
 
     def send_error(self, reason, **data):
@@ -89,6 +91,7 @@ class SubscriptionHandler(WebSocketHandler):
         self.sendMessage(json.dumps(msg))
 
     def send_cards(self, channel_name, cards):
+        print "send cards"
         for card in cards:
             self.on_publish(channel_name, card)
 
