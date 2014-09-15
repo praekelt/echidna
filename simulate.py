@@ -205,10 +205,10 @@ def doit():
 
 
 if __name__ == "__main__":
-    #'../ve/bin/twistd',
+    pth = '../ve/bin/twistd'
     process = Popen(
         [
-            'twistd',
+            os.path.exists(pth) and pth or 'twistd',
             '--pidfile=/tmp/echidna.pid',
             '--logfile=/tmp/echidna.log',
             'cyclone',

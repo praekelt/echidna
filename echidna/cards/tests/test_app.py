@@ -8,5 +8,8 @@ class TestApp(TestCase):
     environment process"""
 
     def test_simulate(self):
-        #os.system('../ve/bin/python ../simulate.py')
-        os.system('python ../simulate.py')
+        pth = '../ve/bin/python'
+        os.system(
+            (os.path.exists(pth) and pth or 'python') \
+                + ' ../simulate.py'
+        )
