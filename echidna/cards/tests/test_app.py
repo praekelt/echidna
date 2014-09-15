@@ -1,5 +1,7 @@
 import os
 
+from twisted.trial.unittest import TestCase
+
 
 class TestApp(TestCase):
     """Run the simulate script since it does not work within the test
