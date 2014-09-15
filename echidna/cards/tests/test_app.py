@@ -9,7 +9,8 @@ class TestApp(TestCase):
 
     def test_simulate(self):
         pth = '../ve/bin/python'
-        os.system(
+        code = os.system(
             (os.path.exists(pth) and pth or 'python') \
                 + ' ../simulate.py'
         )
+        self.assertEquals(code, 0)
