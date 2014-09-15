@@ -79,7 +79,7 @@ class SubscriptionHandler(WebSocketHandler):
             "channel": channel_name,
             "card": card,
         }
-        print "send card"
+        print "Send card %s" % repr(msg)
         self.sendMessage(json.dumps(msg))
 
     def send_error(self, reason, **data):
@@ -91,7 +91,8 @@ class SubscriptionHandler(WebSocketHandler):
         self.sendMessage(json.dumps(msg))
 
     def send_cards(self, channel_name, cards):
-        print "send cards"
+        print "Send cards for channel %s" % channel_name
+        print len(cards)
         for card in cards:
             self.on_publish(channel_name, card)
 

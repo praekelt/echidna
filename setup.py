@@ -18,6 +18,10 @@ setup(
         'redis',
         'zope.dottedname',
     ],
+    tests_require=[
+        'ws4py',
+        'requests',
+    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
