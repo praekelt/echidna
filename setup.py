@@ -17,6 +17,7 @@ setup(
         'txzookeeper',
         'redis',
         'zope.dottedname',
+        'ws4py',
     ],
     tests_require=[
         'ws4py',
