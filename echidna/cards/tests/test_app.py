@@ -8,4 +8,5 @@ class TestApp(TestCase):
     environment process"""
 
     def test_simulate(self):
-        os.system('python simulate.py')
+        #os.system('../ve/bin/python ../simulate.py')
+        os.system('python ../simulate.py')
