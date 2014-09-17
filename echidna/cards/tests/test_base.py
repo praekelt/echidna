@@ -2,29 +2,11 @@ from twisted.internet.defer import inlineCallbacks
 from twisted.trial.unittest import TestCase
 
 from echidna.cards.interfaces import IClient, ICardStore
-from echidna.cards.memory_store import (
-    InMemoryClient, InMemoryChannel, InMemoryCardStore)
+from echidna.cards.base import Client, CardStore
+from echidna.cards.tests.utils import mk_client, Recorder
 
 
-class Recorder(object):
-    """
-    Recording callback for channel clients.
-    """
-
-    def __init__(self):
-        self.calls = []
-
-    def __call__(self, channel_name, card):
-        self.calls.append((channel_name, card))
-
-
-def mk_client(callback=None):
-    if callback is None:
-        callback = lambda channel_name, card: None
-    return InMemoryClient(callback)
-
-
-class TestInMemoryClient(TestCase):
+class TestClient(TestCase):
     def test_implements_IClient(self):
         client = mk_client()
         self.assertTrue(IClient.providedBy(client))
@@ -41,6 +23,7 @@ class TestInMemoryClient(TestCase):
         self.assertEqual(recorder.calls, [("radio_ga_ga", card)])
 
 
+'''
 class TestInMemoryChannel(TestCase):
     def test_create(self):
         channel = InMemoryChannel("radio_ga_ga")
@@ -95,15 +78,15 @@ class TestInMemoryChannel(TestCase):
             ("radio_ga_ga", card1),
             ("radio_ga_ga", card2),
         ])
+'''
 
-
-class TestInMemoryCardStore(TestCase):
+class TestCardStore(TestCase):
     def test_implements_ICardStore(self):
-        store = InMemoryCardStore()
+        store = CardStore()
         self.assertTrue(ICardStore.providedBy(store))
 
     def mk_store_and_client(self):
-        store = InMemoryCardStore()
+        store = CardStore()
         callback = lambda channel_name, card: None
         d = store.create_client(callback)
         return d.addCallback(lambda client: (store, client))
@@ -123,11 +106,11 @@ class TestInMemoryCardStore(TestCase):
 
     @inlineCallbacks
     def test_create_client(self):
-        store = InMemoryCardStore()
+        store = CardStore()
         callback = lambda channel_name, card: None
         client = yield store.create_client(callback)
         self.assertTrue(IClient.providedBy(client))
-        self.assertTrue(isinstance(client, InMemoryClient))
+        self.assertTrue(isinstance(client, Client))
         self.assertTrue(isinstance(client.client_id, str))
         self.assertEqual(client.callback, callback)
 
@@ -178,7 +161,7 @@ class TestInMemoryCardStore(TestCase):
 
     @inlineCallbacks
     def test_publish(self):
-        store = InMemoryCardStore()
+        store = CardStore()
         card1, card2 = object(), object()
         recorder = Recorder()
         client = yield store.create_client(recorder)

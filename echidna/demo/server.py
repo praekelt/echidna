@@ -14,7 +14,7 @@ class DemoServer(EchidnaServer):
     A server to demo Echidna.
     """
 
-    def __init__(self, **settings):
+    def __init__(self, yaml_file=None, **settings):
         defaults = {
             "template_path": (
                 os.path.join(os.path.dirname(__file__), "templates")),
@@ -24,7 +24,7 @@ class DemoServer(EchidnaServer):
             "autoescape": None,
         }
         defaults.update(settings)
-        EchidnaServer.__init__(self, DemoPageHandler, **defaults)
+        EchidnaServer.__init__(self, DemoPageHandler, yaml_file, **defaults)
 
 
 class DemoPageHandler(RequestHandler):

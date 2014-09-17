@@ -17,6 +17,11 @@ setup(
         'txzookeeper',
         'redis',
         'zope.dottedname',
+        'ws4py',
+    ],
+    tests_require=[
+        'ws4py',
+        'requests',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
