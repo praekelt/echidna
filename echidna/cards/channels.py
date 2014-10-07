@@ -2,7 +2,6 @@ import uuid
 import json
 
 from zope.interface import implements
-from zope.dottedname.resolve import resolve
 from twisted.internet.defer import succeed
 import redis
 

@@ -17,7 +17,8 @@ setup(
         'txzookeeper',
         'redis',
         'zope.dottedname',
-        'ws4py',
+        'PyYAML',
+        'ws4py', # Strangely it's not enough to have this only in tests_require
     ],
     tests_require=[
         'ws4py',

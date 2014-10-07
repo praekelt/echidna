@@ -1,5 +1,7 @@
 import json
 
+import yaml
+
 from cyclone.web import Application, RequestHandler, HTTPError
 from cyclone.websocket import WebSocketHandler
 
@@ -8,10 +10,24 @@ from echidna.cards.base import CardStore
 
 class EchidnaServer(Application):
     def __init__(self, root, yaml_file=None, **settings):
-        # todo: get channel_class from settings and pass to constructor
-        #import pdb;pdb.set_trace()
-        # if bla in yaml pass arg to cardstore
-        self.store = CardStore()
+
+        # Parse YAML config if supplied
+        kw = {}
+        if yaml_file is not None:
+            try:
+                fp = open(yaml_file, "r")
+            except IOError:
+                pass
+            else:
+                try:
+                    config = yaml.load(fp)
+                    kw.update(config)
+                except yaml.scanner.ScannerError:
+                    pass
+                finally:
+                    fp.close()
+
+        self.store = CardStore(**kw)
         handlers = [
             (r"/", root),
             (r"/publish/(?P<channel>.*)/", PublicationHandler,
