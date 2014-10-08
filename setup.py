@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="echidna",
-    version="0.0.1-dev",
+    version="0.0.2-dev",
     url='http://github.com/praekelt/echidna',
     license='BSD',
     description='A scalable pub-sub WebSocket service.',
