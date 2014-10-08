@@ -16,7 +16,6 @@ setup(
         'cyclone',
         'txzookeeper',
         'redis',
-        'zope.dottedname',
         'PyYAML',
         'ws4py', # Strangely it's not enough to have this only in tests_require
     ],

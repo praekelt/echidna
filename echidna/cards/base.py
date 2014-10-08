@@ -1,8 +1,8 @@
 import uuid
 import json
+import importlib
 
 from zope.interface import implements
-from zope.dottedname.resolve import resolve
 from twisted.internet.defer import succeed
 
 from echidna.cards.interfaces import IClient, ICardStore
@@ -45,7 +45,9 @@ class CardStore(object):
 
     def _ensure_channel(self, name):
         if name not in self._channels:
-            self._channels[name] = resolve(self._channel_class)(name)
+            li = self._channel_class.split('.')
+            module = importlib.import_module('.'.join(li[:-1]))
+            self._channels[name] = getattr(module, li[-1])(name)
         return self._channels[name]
 
     def create_client(self, callback):
