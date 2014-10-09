@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="echidna",
-    version="0.0.1-dev",
+    version="0.0.4",
     url='http://github.com/praekelt/echidna',
     license='BSD',
     description='A scalable pub-sub WebSocket service.',
@@ -11,6 +11,7 @@ setup(
     author='Praekelt Foundation',
     author_email='dev@praekeltfoundation.org',
     packages=find_packages(),
+    include_package_data=True,
     install_requires=[
         'Twisted',
         'cyclone',
@@ -32,7 +33,6 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: POSIX',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Topic :: Communications',
         'Topic :: Internet',
