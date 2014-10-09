@@ -68,7 +68,7 @@
 <script type="text/javascript">
 $(function () {
     var pub = new echidna.EchidnaPublisher(
-        $("#publish-form"), "{{ api_server }}");
+        $("#publish-form"), window.location.href.split("/")[2]);
 });
 </script>
 
@@ -108,7 +108,7 @@ $(function () {
 $(function () {
     var recv = new echidna.EchidnaReceiver(
         $("#received-form"), $("#received-list"),
-        "{{ api_server }}");
+        window.location.href.split("/")[2]);
 });
 </script>
 
