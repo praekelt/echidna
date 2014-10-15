@@ -43,7 +43,7 @@
             if (text) {
                 msg = {
                     created: $.now(),
-                    text: text,
+                    title: text,
                 }
                 self.post(channel, msg);
             }
@@ -205,7 +205,7 @@
                 '<li class="list-group-item" channel="' + channel + '">' +
                     '<span class="badge">' + created + '</span>' +
                     '<span class="badge channel">' + channel + '</span>' +
-                    card.text +
+                    card.title +
                     '</li>'
             );
             self.check_msg_overflow();
