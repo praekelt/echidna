@@ -36,6 +36,7 @@ class DemoPageHandler(RequestHandler):
         self.render("demo.html",
                     api_server="localhost:8888",
                     channels=[
+                        ("Visual Radio", "visualradio"),
                         ("radio_ga_ga", "Radio Ga Ga"),
                         ("channel_x", "Channel X"),
                         ("major_tom", "Major Tom"),
