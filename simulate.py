@@ -113,7 +113,7 @@ def doit():
     for channel in ("news", "news", "sport", "sport"):
         channels.setdefault(channel, 0)
         idx = channels[channel]
-        data = {"text": "message %s" % idx, "created": NOW_TIMESTAMP + idx * 60}
+        data = {"text": "message %s" % idx, "publish_on": NOW_TIMESTAMP + idx * 60}
         channels[channel] = channels[channel] + 1
         r = requests.post(
             "http://127.0.0.1:8888/publish/%s/" % channel,
@@ -134,7 +134,7 @@ def doit():
         channels.setdefault(channel, 0)
         idx = channels[channel]
         di = {
-            "card": {"text": "message %s" % idx, "created": NOW_TIMESTAMP + idx * 60},
+            "card": {"text": "message %s" % idx, "publish_on": NOW_TIMESTAMP + idx * 60},
             "channel": channel,
             "msg_type": "card"
         }
@@ -155,7 +155,7 @@ def doit():
         channels.setdefault(channel, 0)
         idx = channels[channel]
         di = {
-            "card": {"text": "message %s" % idx, "created": NOW_TIMESTAMP + idx * 60},
+            "card": {"text": "message %s" % idx, "publish_on": NOW_TIMESTAMP + idx * 60},
             "channel": channel,
             "msg_type": "card"
         }
@@ -172,7 +172,7 @@ def doit():
     for channel in ("news", "sport"):
         channels.setdefault(channel, 2)
         idx = channels[channel]
-        data = {"text": "message %s" % idx, "created": NOW_TIMESTAMP + idx * 60}
+        data = {"text": "message %s" % idx, "publish_on": NOW_TIMESTAMP + idx * 60}
         channels[channel] = channels[channel] + 1
         r = requests.post(
             "http://127.0.0.1:8888/publish/%s/" % channel,
@@ -188,7 +188,7 @@ def doit():
             channels.setdefault(channel, 2)
             idx = channels[channel]
             di = {
-                "card": {"text": "message %s" % idx, "created": NOW_TIMESTAMP + idx * 60},
+                "card": {"text": "message %s" % idx, "publish_on": NOW_TIMESTAMP + idx * 60},
                 "channel": channel,
                 "msg_type": "card"
             }
