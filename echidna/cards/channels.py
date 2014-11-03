@@ -32,7 +32,7 @@ class InMemoryChannel(object):
         if (client is not None) and (client.last_seen is not None):
             last_seen_cards = []
             for card in self._cards:
-                if card['created'] > int(client.last_seen):
+                if card['publish_on'] > int(client.last_seen):
                     last_seen_cards.append(card)
             return last_seen_cards
 
