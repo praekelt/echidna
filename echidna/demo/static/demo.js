@@ -42,7 +42,7 @@
 
             if (text) {
                 msg = {
-                    created: $.now(),
+                    publish_on: $.now() / 1000,
                     title: text,
                 }
                 self.post(channel, msg);
@@ -200,10 +200,11 @@
         self.handle_card = function (msg) {
             var card = msg.card;
             var channel = msg.channel;
-            var created = moment(card.created).format("MMMM Do YYYY, h:mm:ss a");
+            // Convert timestamp to miliseconds
+            var publish_on = moment(card.publish_on * 1000).format("MMMM Do YYYY, h:mm:ss a");
             self.$msg_list.prepend(
                 '<li class="list-group-item" channel="' + channel + '">' +
-                    '<span class="badge">' + created + '</span>' +
+                    '<span class="badge">' + publish_on + '</span>' +
                     '<span class="badge channel">' + channel + '</span>' +
                     card.title +
                     '</li>'
