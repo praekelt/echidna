@@ -2,14 +2,17 @@ import json
 
 import yaml
 
-from cyclone.web import Application, RequestHandler, HTTPError
-from cyclone.websocket import WebSocketHandler
+from twisted.web.resource import Resource
+from autobahn.twisted.websocket import (WebSocketServerFactory,
+                                        WebSocketServerProtocol)
+from autobahn.twisted.resource import WebSocketResource
 
 from echidna.cards.base import CardStore
 
 
-class EchidnaServer(Application):
-    def __init__(self, root, yaml_file=None, **settings):
+class EchidnaServer(Resource):
+    def __init__(self, base_url, debug=False, yaml_file=None, **settings):
+        Resource.__init__(self)
 
         # Parse YAML config if supplied
         kw = {}
@@ -28,54 +31,67 @@ class EchidnaServer(Application):
                     fp.close()
 
         self.store = CardStore(**kw)
-        handlers = [
-            (r"/", root),
-            (r"/publish/(?P<channel>.*)/", PublicationHandler,
-             dict(store=self.store)),
-            (r"/subscribe", SubscriptionHandler,
-             dict(store=self.store)),
-        ]
-        Application.__init__(self, handlers, **settings)
+
+        factory = WebSocketServerFactory("ws://" + base_url, debug=debug,
+                                         debugCodePaths=debug)
+        factory.store = self.store
+        factory.protocol = SubscriptionHandlerProtocol
+        ws_resource = WebSocketResource(factory)
+
+        self.putChild("publish", PublicationHandler(self.store))
+        self.putChild("subscribe", ws_resource)
 
 
-class PublicationHandler(RequestHandler):
-    def initialize(self, store):
+class PublicationHandler(Resource):
+    def __init__(self, store):
+        Resource.__init__(self)
         self.store = store
 
-    def post(self, channel):
-        try:
-            channel = self.decode_argument(channel, "channel")
-        except:
-            raise HTTPError(400, "Invalid value for channel.")
-        try:
-            card = json.loads(self.request.body)
-        except:
-            raise HTTPError(400, "Invalid card in request body.")
-        self.store.publish(channel, card)
-        self.set_header("Content-Type", "application/json")
-        self.write(json.dumps({"success": True}))
+    def getChild(self, name, request):
+        return PublicationChannelHandler(self.store, name)
 
 
-class SubscriptionHandler(WebSocketHandler):
-    def initialize(self, store):
+class PublicationChannelHandler(Resource):
+    def __init__(self, store, channel):
+        Resource.__init__(self)
         self.store = store
+        self.channel = channel
+
+    def render_POST(self, request):
+        print 'Got card for channel: [%s]' % self.channel
+        request.responseHeaders.addRawHeader(b"content-type",
+                                             b"application/json")
+        try:
+            card = json.loads(request.content.read())
+        except:
+            request.setResponseCode(400)
+            return json.dumps("Invalid card in request body.")
+        self.store.publish(self.channel, card)
+        print 'saved card'
+
+        return json.dumps({"success": True})
+
+
+class SubscriptionHandlerProtocol(WebSocketServerProtocol):
+    def __init__(self):
+        # WebSocketServerProtocol.__init__(self)
         self.client = None
 
     def _set_client(self, client):
         self.client = client
 
-    def connectionMade(self, *args, **kw):
-        d = self.store.create_client(self.on_publish)
+    def onConnect(self, *args, **kw):
+        d = self.factory.store.create_client(self.on_publish)
         return d.addCallback(self._set_client)
 
-    def connectionLost(self, reason):
+    def onClose(self, wasClea, code, reason):
         if self.client is not None:
-            return self.store.remove_client(self.client)
+            return self.factory.store.remove_client(self.client)
 
-    def messageReceived(self, msg):
-        print "Received message: %s" % str(msg)
+    def onMessage(self, payload, isBinary):
+        print "Received message: %s" % str(payload)
         try:
-            msg = json.loads(msg)
+            msg = json.loads(payload)
         except:
             return
         if not isinstance(msg, dict):
@@ -96,7 +112,7 @@ class SubscriptionHandler(WebSocketHandler):
             "card": card,
         }
         print "Send card %s" % repr(msg)
-        self.sendMessage(json.dumps(msg))
+        self.sendMessage(json.dumps(msg), False)
 
     def send_error(self, reason, **data):
         msg = {
@@ -104,7 +120,7 @@ class SubscriptionHandler(WebSocketHandler):
             "reason": reason,
         }
         msg.update(data)
-        self.sendMessage(json.dumps(msg))
+        self.sendMessage(json.dumps(msg), False)
 
     def send_cards(self, channel_name, cards):
         print "Send cards for channel %s" % channel_name
@@ -118,7 +134,7 @@ class SubscriptionHandler(WebSocketHandler):
         if not isinstance(channel_name, unicode):
             return
 
-        d = self.store.subscribe(channel_name, self.client, last_seen)
+        d = self.factory.store.subscribe(channel_name, self.client, last_seen)
         return d.addCallback(
             lambda cards: self.send_cards(channel_name, cards))
 
@@ -126,7 +142,7 @@ class SubscriptionHandler(WebSocketHandler):
         channel_name = msg.get("channel")
         if not isinstance(channel_name, unicode):
             return
-        d = self.store.unsubscribe(channel_name, self.client)
+        d = self.factory.store.unsubscribe(channel_name, self.client)
         return d
 
     def handle_invalid(self, msg):
