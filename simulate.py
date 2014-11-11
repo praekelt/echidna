@@ -51,6 +51,13 @@ class Client(WebSocketClient):
         super(Client, self).__init__("ws://127.0.0.1:8888/subscribe")
         self.connect()
 
+    # Bug in ws4py. Does not send port along.
+    @property
+    def handshake_headers(self):
+        headers = super(Client, self).handshake_headers
+        headers[0] = ("Host", "%s:%s" % (self.host, self.port))
+        return headers
+
     def received_message(self, message):
         print "%s received message %s" % (self.name, message.data)
         self._messages.insert(0, json.loads(message.data))
@@ -116,7 +123,7 @@ def doit():
         data = {"text": "message %s" % idx, "publish_on": NOW_TIMESTAMP + idx * 60}
         channels[channel] = channels[channel] + 1
         r = requests.post(
-            "http://127.0.0.1:8888/publish/%s/" % channel,
+            "http://127.0.0.1:8888/publish/%s" % channel,
             data=json.dumps(data)
         )
         assert r.content == """{"success": true}"""
@@ -175,7 +182,7 @@ def doit():
         data = {"text": "message %s" % idx, "publish_on": NOW_TIMESTAMP + idx * 60}
         channels[channel] = channels[channel] + 1
         r = requests.post(
-            "http://127.0.0.1:8888/publish/%s/" % channel,
+            "http://127.0.0.1:8888/publish/%s" % channel,
             data=json.dumps(data)
         )
         assert r.content == """{"success": true}"""
