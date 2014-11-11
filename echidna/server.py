@@ -1,81 +1,91 @@
 import json
 
-import yaml
+from twisted.web.resource import Resource
+from twisted.web import server
+from twisted.internet import defer, reactor
+from twisted.python import log
 
-from cyclone.web import Application, RequestHandler, HTTPError
-from cyclone.websocket import WebSocketHandler
+from autobahn.twisted.websocket import (WebSocketServerFactory,
+                                        WebSocketServerProtocol)
+from autobahn.twisted.resource import WebSocketResource
 
 from echidna.cards.base import CardStore
 
 
-class EchidnaServer(Application):
-    def __init__(self, root, yaml_file=None, **settings):
+class EchidnaResource(Resource):
 
-        # Parse YAML config if supplied
-        kw = {}
-        if yaml_file is not None:
-            try:
-                fp = open(yaml_file, "r")
-            except IOError:
-                pass
-            else:
-                try:
-                    config = yaml.load(fp)
-                    kw.update(config)
-                except yaml.scanner.ScannerError:
-                    pass
-                finally:
-                    fp.close()
+    def __init__(self, debug=False, **config):
+        Resource.__init__(self)
 
-        self.store = CardStore(**kw)
-        handlers = [
-            (r"/", root),
-            (r"/publish/(?P<channel>.*)/", PublicationHandler,
-             dict(store=self.store)),
-            (r"/subscribe", SubscriptionHandler,
-             dict(store=self.store)),
-        ]
-        Application.__init__(self, handlers, **settings)
+        channel_class = config.get("channel_class", None)
+        self.store = CardStore(channel_class) if channel_class else CardStore()
+
+        host = config.get("host", "localhost")
+        port = config.get("port", 8888)
+        factory = WebSocketServerFactory(
+            "ws://%s:%s" % (host, port), debug=debug, debugCodePaths=debug
+        )
+        factory.store = self.store
+        factory.protocol = SubscriptionProtocol
+        ws_resource = WebSocketResource(factory)
+
+        self.putChild("publish", PublicationResource(self.store))
+        self.putChild("subscribe", ws_resource)
 
 
-class PublicationHandler(RequestHandler):
-    def initialize(self, store):
+class PublicationResource(Resource):
+
+    def __init__(self, store):
+        Resource.__init__(self)
         self.store = store
 
-    def post(self, channel):
-        try:
-            channel = self.decode_argument(channel, "channel")
-        except:
-            raise HTTPError(400, "Invalid value for channel.")
-        try:
-            card = json.loads(self.request.body)
-        except:
-            raise HTTPError(400, "Invalid card in request body.")
-        self.store.publish(channel, card)
-        self.set_header("Content-Type", "application/json")
-        self.write(json.dumps({"success": True}))
+    def getChild(self, name, request):
+        return PublicationChannelResource(self.store, name)
 
 
-class SubscriptionHandler(WebSocketHandler):
-    def initialize(self, store):
+class PublicationChannelResource(Resource):
+
+    def __init__(self, store, channel):
+        Resource.__init__(self)
         self.store = store
+        self.channel = channel
+
+    def render_POST(self, request):
+        print 'Got card for channel: [%s]' % self.channel
+        request.responseHeaders.addRawHeader(b"content-type",
+                                             b"application/json")
+        try:
+            card = json.loads(request.content.read())
+        except:
+            request.setResponseCode(400)
+            return json.dumps("Invalid card in request body.")
+        self.store.publish(self.channel, card)
+        print 'saved card'
+
+        return json.dumps({"success": True})
+
+
+class SubscriptionProtocol(WebSocketServerProtocol):
+
+    def __init__(self):
+        # WebSocketServerProtocol.__init__(self)
         self.client = None
 
     def _set_client(self, client):
         self.client = client
 
-    def connectionMade(self, *args, **kw):
-        d = self.store.create_client(self.on_publish)
+    def onConnect(self, *args, **kw):
+        d = self.factory.store.create_client(self.on_publish)
         return d.addCallback(self._set_client)
 
-    def connectionLost(self, reason):
+    def onClose(self, wasClea, code, reason):
         if self.client is not None:
-            return self.store.remove_client(self.client)
+            return self.factory.store.remove_client(self.client)
 
-    def messageReceived(self, msg):
-        print "Received message: %s" % str(msg)
+    def onMessage(self, payload, isBinary):
+        print "Received message: %s" % str(payload)
         try:
-            msg = json.loads(msg)
+            msg = json.loads(payload)
         except:
             return
         if not isinstance(msg, dict):
@@ -96,7 +106,7 @@ class SubscriptionHandler(WebSocketHandler):
             "card": card,
         }
         print "Send card %s" % repr(msg)
-        self.sendMessage(json.dumps(msg))
+        self.sendMessage(json.dumps(msg), False)
 
     def send_error(self, reason, **data):
         msg = {
@@ -104,7 +114,7 @@ class SubscriptionHandler(WebSocketHandler):
             "reason": reason,
         }
         msg.update(data)
-        self.sendMessage(json.dumps(msg))
+        self.sendMessage(json.dumps(msg), False)
 
     def send_cards(self, channel_name, cards):
         print "Send cards for channel %s" % channel_name
@@ -118,7 +128,7 @@ class SubscriptionHandler(WebSocketHandler):
         if not isinstance(channel_name, unicode):
             return
 
-        d = self.store.subscribe(channel_name, self.client, last_seen)
+        d = self.factory.store.subscribe(channel_name, self.client, last_seen)
         return d.addCallback(
             lambda cards: self.send_cards(channel_name, cards))
 
@@ -126,8 +136,27 @@ class SubscriptionHandler(WebSocketHandler):
         channel_name = msg.get("channel")
         if not isinstance(channel_name, unicode):
             return
-        d = self.store.unsubscribe(channel_name, self.client)
+        d = self.factory.store.unsubscribe(channel_name, self.client)
         return d
 
     def handle_invalid(self, msg):
         self.send_error("invalid message", original_message=msg)
+
+
+class EchidnaSite(server.Site):
+
+    resourceClass = EchidnaResource
+
+    def startFactory(self):
+        server.Site.startFactory(self)
+        d = defer.DeferredList([])
+        d.addCallback(self.setup_resource)
+        d.addErrback(self.shutdown)
+        return d
+
+    def shutdown(self, failure):
+        log.err(failure.value)
+        reactor.stop()
+
+    def setup_resource(self, results):
+        self.resource = self.resourceClass()

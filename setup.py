@@ -10,16 +10,22 @@ setup(
     long_description=open('README.rst', 'r').read(),
     author='Praekelt Foundation',
     author_email='dev@praekeltfoundation.org',
-    packages=find_packages(),
+    packages=[
+        "echidna",
+        "twisted.plugins",
+    ],
+    package_data={
+        'twisted.plugins': ['twisted/plugins/echidna_plugin.py'],
+    },
     include_package_data=True,
     install_requires=[
         'Twisted',
-        'cyclone',
+        'autobahn',
         'txzookeeper',
         'redis',
         'PyYAML',
         'ws4py', # Strangely it's not enough to have this only in tests_require
-        'requests', # Same for this
+        'requests',
     ],
     tests_require=[
         'ws4py',
