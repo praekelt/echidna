@@ -211,9 +211,8 @@ if __name__ == "__main__":
             os.path.exists(pth) and pth or 'twistd',
             '--pidfile=/tmp/echidna.pid',
             '--logfile=/tmp/echidna.log',
-            'cyclone',
-            '--app=echidna.demo.server.DemoServer',
-            '--port=8888'
+            '-n',
+            'echidna',
         ],
         stdout=PIPE,
         stderr=PIPE,
