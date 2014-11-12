@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="echidna",
-    version="0.0.12",
+    version="0.0.13",
     url='http://github.com/praekelt/echidna',
     license='BSD',
     description='A scalable pub-sub WebSocket service.',
@@ -19,11 +19,12 @@ setup(
     },
     include_package_data=True,
     install_requires=[
-        'Twisted',
-        'autobahn',
+        'Twisted>=14.0.2',
+        'autobahn>=0.9.3',
         'txzookeeper',
         'redis',
         'PyYAML',
+        'cryptography',
         'ws4py', # Strangely it's not enough to have this only in tests_require
         'requests',
     ],
@@ -34,7 +35,6 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
-        'Framework :: Cyclone',
         'Framework :: Twisted',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
