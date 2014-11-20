@@ -1,3 +1,5 @@
 buildscript: scripts/build
 dependencies:
  - redis-server
+ - libffi-dev
+ - libyaml-cpp-dev

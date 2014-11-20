@@ -18,7 +18,7 @@ class Options(usage.Options):
     ]
 
 
-class BouncerServiceMaker(object):
+class MyServiceMaker(object):
     implements(IServiceMaker, IPlugin)
     tapname = "echidna"
     description = "Echidna"
@@ -36,4 +36,4 @@ class BouncerServiceMaker(object):
         return internet.TCPServer(int(port),
             EchidnaSite(config))
 
-serviceMaker = BouncerServiceMaker()
+serviceMaker = MyServiceMaker()
