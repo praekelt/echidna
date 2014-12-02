@@ -105,11 +105,13 @@ def doit():
     di = {
         "msg_type": "subscribe",
         "channel": "news",
+        "last_seen": NOW_TIMESTAMP - 3600 * 4,
     }
     client1.socket.send(json.dumps(di))
     di = {
         "msg_type": "subscribe",
         "channel": "sport",
+        "last_seen": NOW_TIMESTAMP - 3600 * 4,
     }
     client1.socket.send(json.dumps(di))
     sleep(0.5)
@@ -133,6 +135,7 @@ def doit():
         di = {
             "msg_type": "subscribe",
             "channel": channel,
+            "last_seen": NOW_TIMESTAMP - 3600 * 4,
         }
         client2.socket.send(json.dumps(di))
     sleep(0.5)

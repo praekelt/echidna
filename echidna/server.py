@@ -125,6 +125,8 @@ class SubscriptionProtocol(WebSocketServerProtocol):
     def handle_subscribe(self, msg):
         channel_name = msg.get("channel")
         last_seen = msg.get("last_seen", None)
+        if last_seen is None:
+            last_seen = int(datetime.datetime.utcnow().strftime("%s")) - 10800
         if not isinstance(channel_name, unicode):
             return
 
