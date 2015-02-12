@@ -62,7 +62,6 @@ class PublicationChannelResource(Resource):
             request.setResponseCode(400)
             return json.dumps("Invalid card in request body.")
         self.store.publish(self.channel, card)
-        print 'saved card'
 
         return json.dumps({"success": True})
 
@@ -120,7 +119,6 @@ class SubscriptionProtocol(WebSocketServerProtocol):
 
     def send_cards(self, channel_name, cards):
         print "Send cards for channel %s" % channel_name
-        print len(cards)
         for card in cards:
             self.on_publish(channel_name, card)
 
@@ -142,6 +140,9 @@ class SubscriptionProtocol(WebSocketServerProtocol):
             return
         d = self.factory.store.unsubscribe(channel_name, self.client)
         return d
+
+    def handle_ping(self, msg):
+        self.sendMessage("1", False)
 
     def handle_invalid(self, msg):
         self.send_error("invalid message", original_message=msg)
