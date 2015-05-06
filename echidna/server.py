@@ -125,11 +125,13 @@ class SubscriptionProtocol(WebSocketServerProtocol):
     def handle_subscribe(self, msg):
         channel_name = msg.get("channel")
         last_seen = msg.get("last_seen", None)
+        client_id = msg.get("id", "Anon")
         if last_seen is None:
             last_seen = int(datetime.datetime.utcnow().strftime("%s")) - 10800
         if not isinstance(channel_name, unicode):
             return
 
+        self.client.given_id = client_id
         d = self.factory.store.subscribe(channel_name, self.client, last_seen)
         return d.addCallback(
             lambda cards: self.send_cards(channel_name, cards))
@@ -152,6 +154,10 @@ class EchidnaSite(server.Site):
 
     resourceClass = EchidnaResource
 
+    def __init__(self, resource, *args, **kwargs):
+        self.config = kwargs.pop('config', {})
+        server.Site.__init__(self, resource, *args, **kwargs)
+
     def startFactory(self):
         server.Site.startFactory(self)
         d = defer.DeferredList([])
@@ -164,4 +170,4 @@ class EchidnaSite(server.Site):
         reactor.stop()
 
     def setup_resource(self, results):
-        self.resource = self.resourceClass()
+        self.resource = self.resourceClass(**self.config)

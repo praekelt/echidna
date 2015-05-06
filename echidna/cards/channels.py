@@ -1,5 +1,6 @@
 import uuid
 import json
+import datetime
 
 from zope.interface import implements
 from twisted.internet.defer import succeed
@@ -60,6 +61,13 @@ class RedisChannel(InMemoryChannel):
             self._cards = [json.loads(v) for v in values]
         except ValueError:
             pass
+
+    def subscribe(self, client, last_seen=None):
+        super(RedisChannel, self).subscribe(client, last_seen)
+        # record uuid in redis
+        now = datetime.datetime.now()
+        bucket = now.strftime('%Y%m%d-%H')
+        self._redis.sadd(bucket, client.given_id)
 
     def publish(self, card):
         self._redis.rpush(self._key, json.dumps(card))
