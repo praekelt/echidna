@@ -73,7 +73,7 @@ class RedisChannel(InMemoryChannel):
         bucket = "%s-%s" % (self.name, now.strftime("%Y%m%d%H"))
         client_id = getattr(client, "given_id", "Anon")
         if client_id != "Anon":
-            self._redis.sadd(bucket, client_id)
+            self._redis.pfadd(bucket, client_id)
 
     def publish(self, card):
         self._redis.rpush(self._key, json.dumps(card))
@@ -86,6 +86,6 @@ class RedisChannel(InMemoryChannel):
             dt = now - relativedelta(hours=h)
             bucket = "%s-%s" % (self.name, dt.strftime("%Y%m%d%H"))
             bucket_name = bucket.split('-')[1]
-            totals[bucket_name] = self._redis.scard(bucket)
+            totals[bucket_name] = self._redis.pfcount(bucket)
 
         return totals
