@@ -27,6 +27,7 @@ setup(
         'cryptography',
         'ws4py', # Strangely it's not enough to have this only in tests_require
         'requests',
+        'dateutils',
     ],
     tests_require=[
         'ws4py',

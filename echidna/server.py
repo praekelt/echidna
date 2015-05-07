@@ -33,6 +33,7 @@ class EchidnaResource(Resource):
 
         self.putChild("publish", PublicationResource(self.store))
         self.putChild("subscribe", ws_resource)
+        self.putChild("totals", TotalsResource(self.store))
 
 
 class PublicationResource(Resource):
@@ -64,6 +65,33 @@ class PublicationChannelResource(Resource):
         self.store.publish(self.channel, card)
 
         return json.dumps({"success": True})
+
+
+class TotalsResource(Resource):
+
+    def __init__(self, store):
+        Resource.__init__(self)
+        self.store = store
+
+    def getChild(self, name, request):
+        return TotalsChannelResource(self.store, name)
+
+
+class TotalsChannelResource(Resource):
+
+    def __init__(self, store, channel):
+        Resource.__init__(self)
+        self.store = store
+        self.channel = channel
+
+    def render_GET(self, request):
+        request.responseHeaders.addRawHeader(b"content-type",
+                                             b"application/json")
+        # get the last 24 hour-based buckets
+        res = {
+            "totals": self.store.totals(self.channel)
+        }
+        return json.dumps(res)
 
 
 class SubscriptionProtocol(WebSocketServerProtocol):
