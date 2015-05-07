@@ -72,7 +72,8 @@ class RedisChannel(InMemoryChannel):
         now = datetime.datetime.now()
         bucket = "%s-%s" % (self.name, now.strftime("%Y%m%d%H"))
         client_id = getattr(client, "given_id", "Anon")
-        self._redis.sadd(bucket, client_id)
+        if client_id != "Anon":
+            self._redis.sadd(bucket, client_id)
 
     def publish(self, card):
         self._redis.rpush(self._key, json.dumps(card))
