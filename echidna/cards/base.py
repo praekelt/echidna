@@ -73,3 +73,7 @@ class CardStore(object):
         channel = self._ensure_channel(channel_name)
         channel.publish(card)
         return succeed(None)
+
+    def totals(self, channel_name):
+        channel = self._ensure_channel(channel_name)
+        return channel.totals()

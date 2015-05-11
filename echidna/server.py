@@ -33,6 +33,7 @@ class EchidnaResource(Resource):
 
         self.putChild("publish", PublicationResource(self.store))
         self.putChild("subscribe", ws_resource)
+        self.putChild("totals", TotalsResource(self.store))
 
 
 class PublicationResource(Resource):
@@ -64,6 +65,33 @@ class PublicationChannelResource(Resource):
         self.store.publish(self.channel, card)
 
         return json.dumps({"success": True})
+
+
+class TotalsResource(Resource):
+
+    def __init__(self, store):
+        Resource.__init__(self)
+        self.store = store
+
+    def getChild(self, name, request):
+        return TotalsChannelResource(self.store, name)
+
+
+class TotalsChannelResource(Resource):
+
+    def __init__(self, store, channel):
+        Resource.__init__(self)
+        self.store = store
+        self.channel = channel
+
+    def render_GET(self, request):
+        request.responseHeaders.addRawHeader(b"content-type",
+                                             b"application/json")
+        # get the last 24 hour-based buckets
+        res = {
+            "totals": self.store.totals(self.channel)
+        }
+        return json.dumps(res)
 
 
 class SubscriptionProtocol(WebSocketServerProtocol):
@@ -125,11 +153,13 @@ class SubscriptionProtocol(WebSocketServerProtocol):
     def handle_subscribe(self, msg):
         channel_name = msg.get("channel")
         last_seen = msg.get("last_seen", None)
+        client_id = msg.get("id", "Anon")
         if last_seen is None:
             last_seen = int(datetime.datetime.utcnow().strftime("%s")) - 10800
         if not isinstance(channel_name, unicode):
             return
 
+        self.client.given_id = client_id
         d = self.factory.store.subscribe(channel_name, self.client, last_seen)
         return d.addCallback(
             lambda cards: self.send_cards(channel_name, cards))
@@ -152,6 +182,10 @@ class EchidnaSite(server.Site):
 
     resourceClass = EchidnaResource
 
+    def __init__(self, resource, *args, **kwargs):
+        self.config = kwargs.pop('config', {})
+        server.Site.__init__(self, resource, *args, **kwargs)
+
     def startFactory(self):
         server.Site.startFactory(self)
         d = defer.DeferredList([])
@@ -164,4 +198,4 @@ class EchidnaSite(server.Site):
         reactor.stop()
 
     def setup_resource(self, results):
-        self.resource = self.resourceClass()
+        self.resource = self.resourceClass(**self.config)

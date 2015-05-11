@@ -34,6 +34,6 @@ class MyServiceMaker(object):
         port = config.pop('port', 8888)
 
         return internet.TCPServer(int(port),
-            EchidnaSite(config))
+            EchidnaSite(None, config=config))
 
 serviceMaker = MyServiceMaker()

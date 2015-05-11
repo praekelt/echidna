@@ -72,6 +72,10 @@ class TestInMemoryChannel(TestCase):
             ("radio_ga_ga", card2),
         ])
 
+    def test_totals(self):
+        channel = self._channels["radio_ga_ga"]
+        self.assertEqual(channel.totals(), None)
+
 
 class TestRedisChannel(TestInMemoryChannel):
 
@@ -82,3 +86,7 @@ class TestRedisChannel(TestInMemoryChannel):
         """Short-circuit because redis is persistent and we can't blindly
         flush it."""
         pass
+
+    def test_totals(self):
+        channel = self._channels["radio_ga_ga"]
+        self.assertEqual(len(channel.totals()), 24)
