@@ -28,6 +28,7 @@ setup(
         'ws4py', # Strangely it's not enough to have this only in tests_require
         'requests',
         'dateutils',
+        'pika',
     ],
     tests_require=[
         'ws4py',
