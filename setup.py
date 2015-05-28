@@ -29,6 +29,7 @@ setup(
         'requests',
         'dateutils',
         'pika',
+        'treq'
     ],
     tests_require=[
         'ws4py',

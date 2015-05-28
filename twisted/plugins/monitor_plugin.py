@@ -18,10 +18,11 @@ class Options(usage.Options):
 class MonitorServiceMaker(object):
     implements(IServiceMaker, IPlugin)
     tapname = "monitor"
-    description = "Monitor RabbitMQ fanout exchange called logs"
+    description = "Monitor RabbitMQ fanout exchange called echidna"
     options = Options
 
     def makeService(self, options):
         return monitor.makeService()
+
 
 serviceMaker = MonitorServiceMaker()
