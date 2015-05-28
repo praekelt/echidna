@@ -22,7 +22,7 @@ setup(
         'Twisted>=14.0.2',
         'autobahn>=0.9.3',
         'txzookeeper',
-        'redis',
+        'redis>=2.10',
         'PyYAML',
         'cryptography',
         'ws4py', # Strangely it's not enough to have this only in tests_require
