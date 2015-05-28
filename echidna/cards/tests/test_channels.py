@@ -7,6 +7,9 @@ from echidna.cards.channels import InMemoryChannel, RedisChannel
 from echidna.cards.tests.utils import mk_client, Recorder
 
 
+NOW = 1432817093
+
+
 class TestInMemoryChannel(TestCase):
 
     def setUp(self):
@@ -21,8 +24,8 @@ class TestInMemoryChannel(TestCase):
             channel._clients.items(),
             [(client.client_id, client) for client in clients])
 
-    def assert_cards(self, channel, cards):
-        self.assertEqual(channel.cards(), cards)
+    def assert_cards(self, channel, cards, client=None):
+        self.assertEqual(channel.cards(client=client), cards)
 
     def test_subscribe(self):
         channel = self._channels["radio_ga_ga"]
@@ -43,19 +46,28 @@ class TestInMemoryChannel(TestCase):
         channel = self._channels["radio_ga_ga"]
         card1 = card2 = {
             "text": "bla",
-            "created": int(datetime.datetime.now().strftime("%s"))
+            "publish_on": NOW
+        }
+        card3 = {
+            "text": "bla",
+            "publish_on": NOW + 10
         }
         self.assert_cards(channel, [])
         channel.publish(card1)
         self.assert_cards(channel, [card1])
         channel.publish(card2)
         self.assert_cards(channel, [card1, card2])
+        channel.publish(card3)
+        channel = self._channels["radio_ga_ga"]
+        client = mk_client()
+        channel.subscribe(client, last_seen=NOW + 9)
+        self.assert_cards(channel, [card3], client)
 
     def test_publish(self):
         channel = self._channels["radio_ga_ga"]
         card1 = card2 = {
             "text": "bla",
-            "created": int(datetime.datetime.now().strftime("%s"))
+            "publish_on": NOW
         }
         recorder = Recorder()
         client = mk_client(recorder)
@@ -81,11 +93,8 @@ class TestRedisChannel(TestInMemoryChannel):
 
     def setUp(self):
         self._channels = {"radio_ga_ga": RedisChannel("radio_ga_ga")}
-
-    def test_cards(self):
-        """Short-circuit because redis is persistent and we can't blindly
-        flush it."""
-        pass
+        for v in self._channels.values():
+            v.clear()
 
     def test_totals(self):
         channel = self._channels["radio_ga_ga"]

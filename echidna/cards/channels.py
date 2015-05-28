@@ -1,6 +1,7 @@
 import uuid
 import json
 import datetime
+import time
 
 from zope.interface import implements
 from twisted.internet.defer import succeed
@@ -20,6 +21,10 @@ class InMemoryChannel(object):
     def __init__(self, name):
         self.name = name
         self._clients = {}
+        self._cards = []
+
+    def clear(self):
+        """Remove cards from memory"""
         self._cards = []
 
     def subscribe(self, client, last_seen=None):
@@ -58,13 +63,19 @@ class RedisChannel(InMemoryChannel):
 
     def __init__(self, name):
         super(RedisChannel, self).__init__(name)
-        self._redis = redis.Redis("localhost")
-        self._key = "echidna%scards" % self.name
-        values = self._redis.lrange(self._key, 0, -1)
+        # todo: host from config
+        self._redis = redis.StrictRedis("localhost")
+        self._key = "echidna%scards2" % self.name
+        # Limit values
+        values = self._redis.zrange(self._key, 0, -1)[-1000:0]
         try:
             self._cards = [json.loads(v) for v in values]
         except ValueError:
             pass
+
+    def clear(self):
+        """Remove cards from redis"""
+        self._redis.delete(self._key)
 
     def subscribe(self, client, last_seen=None):
         super(RedisChannel, self).subscribe(client, last_seen)
@@ -76,7 +87,7 @@ class RedisChannel(InMemoryChannel):
             self._redis.pfadd(bucket, client_id)
 
     def publish(self, card):
-        self._redis.rpush(self._key, json.dumps(card))
+        self._redis.zadd(self._key, int(card["publish_on"]), json.dumps(card))
         super(RedisChannel, self).publish(card)
 
     def totals(self):
