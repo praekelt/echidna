@@ -19,8 +19,9 @@ class EchidnaResource(Resource):
     def __init__(self, debug=False, **config):
         Resource.__init__(self)
 
-        channel_class = config.get("channel_class", None)
-        self.store = CardStore(channel_class) if channel_class else CardStore()
+        channel_class = config.pop("channel_class", None)
+        self.store = CardStore(channel_class, **config) if channel_class \
+            else CardStore(**config)
 
         host = config.get("host", "localhost")
         port = config.get("port", 8888)

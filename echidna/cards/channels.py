@@ -18,7 +18,7 @@ class InMemoryChannel(object):
 
     implements(IInMemoryChannel)
 
-    def __init__(self, name):
+    def __init__(self, name, **config):
         self.name = name
         self._clients = {}
         self._cards = []
@@ -61,10 +61,10 @@ class RedisChannel(InMemoryChannel):
 
     implements(IRedisChannel)
 
-    def __init__(self, name):
+    def __init__(self, name, **config):
         super(RedisChannel, self).__init__(name)
         # todo: host from config
-        self._redis = redis.StrictRedis("localhost")
+        self._redis = redis.StrictRedis(config.get("redis_host") or "localhost")
         self._key = "echidna%scards2" % self.name
         # Limit values
         values = self._redis.zrange(self._key, 0, -1)[-1000:0]

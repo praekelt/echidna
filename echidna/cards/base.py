@@ -38,16 +38,18 @@ class CardStore(object):
 
     def __init__(
         self,
-        channel_class="echidna.cards.channels.InMemoryChannel"
+        channel_class="echidna.cards.channels.InMemoryChannel",
+        **config
     ):
         self._channels = {}
         self._channel_class = channel_class
+        self._config = config
 
     def _ensure_channel(self, name):
         if name not in self._channels:
             li = self._channel_class.split('.')
             module = importlib.import_module('.'.join(li[:-1]))
-            self._channels[name] = getattr(module, li[-1])(name)
+            self._channels[name] = getattr(module, li[-1])(name, **self._config)
         return self._channels[name]
 
     def create_client(self, callback):

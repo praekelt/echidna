@@ -4,7 +4,7 @@ import json
 import pika
 
 
-struct = {'content_type': 'post'}
+struct = {'content_type': 'post', 'publish_on': 123}
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='localhost'))
 channel = connection.channel()

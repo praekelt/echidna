@@ -1,1 +1,2 @@
 channel_class: echidna.cards.channels.RedisChannel
+redis_host: localhost
